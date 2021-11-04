@@ -1,0 +1,22 @@
+#!/bin/env bash
+
+# Ensure working directory is git repository root.
+if [[ $((ls | grep "setup") | wc -l) == "0" || $(grep "ensure-dir-x-dotfile" ./setup | wc -l) == "0" ]]
+then
+	echo "Current working directory must be dotfile git repository location."
+	exit -1
+fi
+
+echo "Setting NeoVim config."
+
+if [ -z ${XDG_CONFIG_HOME+x} ]
+then
+	path=~/.config/nvim/init.vim
+else
+	path=$XDG_CONFIG_HOME/nvim/init.vim
+fi
+
+rm $path &> /dev/null
+cp -s -f $PWD/nvim/init.vim $path
+
+echo "Done!"
