@@ -102,7 +102,13 @@ nnoremap <leader>ff <cmd>Telescope find_files<cr>
 nnoremap <leader>fg <cmd>Telescope live_grep<cr>
 nnoremap <leader>fb <cmd>Telescope buffers<cr>
 nnoremap <leader>fh <cmd>Telescope help_tags<cr>
+nnoremap <leader>jr <cmd>Telescope lsp_references<cr>
+nnoremap <leader>jd <cmd>Telescope lsp_definitions<cr>
 
+" Other keybindings
+nnoremap <leader>rr <cmd>lua vim.lsp.buf.rename()<cr>
+nnoremap <silent> <leader>= <cmd>lua vim.lsp.buf.formatting()<cr>
+nnoremap <silent> <leader>i <cmd>lua vim.lsp.buf.hover()<cr>
 " Other
 autocmd! User nvim-autopairs lua require 'nvim-autopairs'.setup{}
 autocmd! User rust-tools lua require("rust-tools").setup({})
