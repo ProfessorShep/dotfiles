@@ -68,24 +68,41 @@ colorscheme onedark
 
 " LSP
 
+let g:coq_settings = { 'auto_start': 'shut-up' }
 lua << EOF
-local lsp_installer = require "nvim-lsp-installer"
+local coq = require "coq"
+local lsp = require "lspconfig"
 
-lsp_installer.on_server_ready(function(server)
-	server:setup(require "coq".lsp_ensure_capabilities())
-end)
-	
+function setup(server)
+	server.setup(coq.lsp_ensure_capabilities())
+end
+
+setup(lsp.bashls)
+setup(lsp.yamlls)
+setup(lsp.vimls)
+setup(lsp.pyright)
+setup(lsp.rust_analyzer)
+setup(lsp.clangd)
+setup(lsp.jdtls)
+setup(lsp.html)
+setup(lsp.cssls)
+setup(lsp.ltex)
+setup(lsp.tsserver)
+setup(lsp.cmake)
+setup(lsp.jsonls)
+
 EOF
-
 " Telescope
-lua require "telescope".load_extension("fzf")
-nnoremap <C-P> <cmd>Telescope find_files<cr>
-inoremap <C-P> <cmd>Telescope find_files<cr>
+nnoremap <C-P> <cmd>Telescope lsp_dynamic_workspace_symbols<cr>
+inoremap <C-P> <cmd>Telescope lsp_dynamic_workspace_symbols<cr>
+inoremap <C-@> <C-Space>
+inoremap P <cmd>Telescope lsp_code_actions<cr>
+nnoremap P <cmd>Telescope lsp_code_actions<cr>
+nnoremap <leader>ff <cmd>Telescope find_files<cr>
 nnoremap <leader>fg <cmd>Telescope live_grep<cr>
 nnoremap <leader>fb <cmd>Telescope buffers<cr>
 nnoremap <leader>fh <cmd>Telescope help_tags<cr>
 
 " Other
-lua require 'nvim-autopairs'.setup{}
-lua require("rust-tools").setup({})
-let g:coq_settings = { 'auto_start': 'shut-up' }
+autocmd! User nvim-autopairs lua require 'nvim-autopairs'.setup{}
+autocmd! User rust-tools lua require("rust-tools").setup({})
