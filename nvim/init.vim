@@ -45,6 +45,7 @@ Plug 'ms-jpq/coq.artifacts', {'branch': 'artifacts'}
 Plug 'ms-jpq/coq.thirdparty', {'branch': '3p'}
 Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }
 Plug 'windwp/nvim-autopairs'
+Plug 'nvim-treesitter/nvim-treesitter'
 
 call plug#end()
 
@@ -92,11 +93,23 @@ setup(lsp.cmake)
 setup(lsp.jsonls)
 
 EOF
+
+" Treesitter
+lua << EOF
+require "nvim-treesitter.configs".setup {
+	highlight = {
+		enable = true
+	},
+	indent = {
+		enable = true
+	}
+}
+EOF
+
 " Telescope
 nnoremap <C-P> <cmd>Telescope lsp_dynamic_workspace_symbols<cr>
 inoremap <C-P> <cmd>Telescope lsp_dynamic_workspace_symbols<cr>
 inoremap <C-@> <C-Space>
-inoremap P <cmd>Telescope lsp_code_actions<cr>
 nnoremap P <cmd>Telescope lsp_code_actions<cr>
 nnoremap <leader>ff <cmd>Telescope find_files<cr>
 nnoremap <leader>fg <cmd>Telescope live_grep<cr>
