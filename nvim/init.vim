@@ -51,6 +51,10 @@ set noshowmode
 set autoindent
 set termguicolors
 set number
+set foldmethod=expr
+set foldexpr=nvim_treesitter#foldexpr()
+set foldlevelstart=99
+set syntax=off
 
 " Colorizer
 lua require'colorizer'.setup()
@@ -147,6 +151,16 @@ setup(lsp.tsserver)
 setup(lsp.cmake)
 setup(lsp.jsonls)
 
+-- Fix treesitter folding for telescope
+vim.api.nvim_create_autocmd('BufRead', {
+   callback = function()
+      vim.api.nvim_create_autocmd('BufWinEnter', {
+         once = true,
+         command = 'normal! zx'
+      })
+   end
+})
+
 EOF
 
 " Treesitter
@@ -171,4 +185,39 @@ require('telescope').setup{
       }
     },
 	  file_ignore_patterns = {
-	
+		  ".git",
+		  ".cache",
+		  "out",
+		  ".vs",
+		  ".qtc-clangd",
+		  "build",
+		  ".kdev4",
+		  "%.o",
+		  "%.a",
+		  "%.class",
+	  }
+  }
+}
+
+
+EOF
+
+nnoremap <C-K> <cmd>Telescope find_files<cr>
+inoremap <C-K> <cmd>Telescope find_files<cr>
+nnoremap <C-P> <cmd>Telescope lsp_dynamic_workspace_symbols<cr>
+inoremap <C-P> <cmd>Telescope lsp_dynamic_workspace_symbols<cr>
+inoremap <C-@> <C-Space>
+nnoremap <leader>fc <cmd>Telescope lsp_code_actions<cr>
+nnoremap <leader>fg <cmd>Telescope live_grep<cr>
+nnoremap <leader>fb <cmd>Telescope buffers<cr>
+nnoremap <leader>fh <cmd>Telescope help_tags<cr>
+nnoremap <leader>fr <cmd>Telescope lsp_references<cr>
+nnoremap <leader>fd <cmd>Telescope lsp_definitions<cr>
+
+" Other keybindings
+nnoremap <leader>rr <cmd>lua vim.lsp.buf.rename()<cr>
+nnoremap <silent> <leader>= <cmd>lua vim.lsp.buf.formatting()<cr>
+nnoremap <silent> <leader>i <cmd>lua vim.lsp.buf.hover()<cr>
+" Other
+autocmd! User nvim-autopairs lua require 'nvim-autopairs'.setup{}
+autocmd! User rust-tools lua require("rust-tools").setup({})
