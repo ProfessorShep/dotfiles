@@ -32,12 +32,17 @@ Plug 'joshdick/onedark.vim'
 Plug 'neovim/nvim-lspconfig'
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim'
-Plug 'ms-jpq/coq.nvim', {'branch': 'coq'}
-Plug 'ms-jpq/coq.artifacts', {'branch': 'artifacts'}
-Plug 'ms-jpq/coq.thirdparty', {'branch': '3p'}
+Plug 'hrsh7th/cmp-nvim-lsp'
+Plug 'hrsh7th/cmp-buffer'
+Plug 'hrsh7th/cmp-path'
+Plug 'hrsh7th/cmp-cmdline'
+Plug 'hrsh7th/nvim-cmp'
+Plug 'L3MON4D3/LuaSnip'
+Plug 'saadparwaiz1/cmp_luasnip'
 Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }
 Plug 'windwp/nvim-autopairs'
 Plug 'nvim-treesitter/nvim-treesitter'
+Plug 'editorconfig/editorconfig-vim'
 
 
 call plug#end()
@@ -56,6 +61,9 @@ set foldexpr=nvim_treesitter#foldexpr()
 set foldlevelstart=99
 set syntax=off
 
+" EditorConfig
+let g:EditorConfig_exclude_patterns = ['fugitive://.*']
+
 " Colorizer
 lua require'colorizer'.setup()
 
@@ -65,9 +73,65 @@ set spell spelllang=en_us
 " Color Scheme
 colorscheme onedark
 
+" nvim-cmp
+lua << EOF
+local cmp = require 'cmp'
+
+local mappingopts = {
+  ['<C-b>'] = cmp.mapping.scroll_docs(-4),
+  ['<C-f>'] = cmp.mapping.scroll_docs(4),
+  ['<C-Space>'] = cmp.mapping.complete(),
+  ['<C-e>'] = cmp.mapping.abort(),
+  ["<Tab>"] = cmp.mapping(function(fallback)
+    -- IntelliJ-style mapping
+    if cmp.visible() then
+        local entry = cmp.get_selected_entry()
+      if not entry then
+        cmp.select_next_item({ behavior = cmp.SelectBehavior.Select })
+      else
+        cmp.confirm()
+      end
+      else
+        fallback()
+      end
+    end, {"i","s","c",}),
+}
+
+local cmdmappingopts = mappingopts
+
+
+cmp.setup({
+  snippet = {
+    expand = function(args)
+      require('luasnip').lsp_expand(args.body)
+    end,
+  },
+  mapping = cmp.mapping.preset.insert(mappingopts),
+  sources = cmp.config.sources({
+      { name = 'nvim_lsp' },
+      { name = 'luasnip' },
+    },
+    { 
+        { name = 'buffer' },
+    }
+  ),
+  completion = { completeopt = 'menu,menuone,noinsert' },
+})
+
+cmp.setup.filetype('gitcommit', {}, {{ name = 'buffer' }})
+cmp.setup.cmdline('/', {
+  mapping = cmp.mapping.preset.cmdline(cmdmappingopts),
+  sources = {{ name = 'buffer' }},
+})
+
+cmp.setup.cmdline(':', {
+  mapping = cmp.mapping.preset.cmdline(cmdmappingopts),
+  sources = cmp.config.sources({{ name = 'path' }}, {{ name = 'cmdline' }}),
+})
+EOF
+
 " LSP
 
-let g:coq_settings = { 'auto_start': 'shut-up' }
 lua << EOF
 local opts = { noremap=true, silent=true }
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, opts)
@@ -101,7 +165,6 @@ local on_attach = function(client, bufnr)
   vim.keymap.set('n', 'gr', vim.lsp.buf.references, bufopts)
   vim.keymap.set('n', '<leader>f', vim.lsp.buf.formatting, bufopts)
 end
-local coq = require "coq"
 local lsp = require "lspconfig"
 
 -- Implement switch header/source files for clangd
@@ -121,6 +184,9 @@ local clangd_switch_source_header = function(buffer)
   vim.lsp.buf_request(buffer, 'textDocument/switchSourceHeader', {uri =  'file:///' .. current_file }, handler )
 end
 
+-- Nvim-cmp capabilities
+local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
+
 function setup(server)
   local attach_handler = on_attach;
 
@@ -134,7 +200,7 @@ function setup(server)
     end
   end
 
-	server.setup(coq.lsp_ensure_capabilities({on_attach = attach_handler}))
+	server.setup({on_attach = attach_handler, capabilities = capabilities})
 end
 
 setup(lsp.bashls)
@@ -163,6 +229,19 @@ vim.api.nvim_create_autocmd('BufRead', {
 
 EOF
 
+" Luasnip
+" press <Tab> to expand or jump in a snippet. These can also be mapped separately
+" via <Plug>luasnip-expand-snippet and <Plug>luasnip-jump-next.
+imap <silent><expr> <Tab> luasnip#expand_or_jumpable() ? '<Plug>luasnip-expand-or-jump' : '<Tab>' 
+" -1 for jumping backwards.
+inoremap <silent> <S-Tab> <cmd>lua require'luasnip'.jump(-1)<Cr>
+
+snoremap <silent> <Tab> <cmd>lua require('luasnip').jump(1)<Cr>
+snoremap <silent> <S-Tab> <cmd>lua require('luasnip').jump(-1)<Cr>
+
+" For changing choices in choiceNodes (not strictly necessary for a basic setup).
+imap <silent><expr> <C-E> luasnip#choice_active() ? '<Plug>luasnip-next-choice' : '<C-E>'
+smap <silent><expr> <C-E> luasnip#choice_active() ? '<Plug>luasnip-next-choice' : '<C-E>'
 " Treesitter
 lua << EOF
 require "nvim-treesitter.configs".setup {
