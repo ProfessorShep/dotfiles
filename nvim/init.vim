@@ -20,6 +20,7 @@ autocmd VimEnter * if len(filter(values(g:plugs), '!isdirectory(v:val.dir)'))
 
 call plug#begin(stdpath('data') . '/plugged')
 
+Plug 'editorconfig/editorconfig-vim'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-fugitive'
 Plug 'airblade/vim-gitgutter'
@@ -32,6 +33,7 @@ Plug 'joshdick/onedark.vim'
 Plug 'neovim/nvim-lspconfig'
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim'
+
 Plug 'hrsh7th/cmp-nvim-lsp'
 Plug 'hrsh7th/cmp-buffer'
 Plug 'hrsh7th/cmp-path'
@@ -39,10 +41,10 @@ Plug 'hrsh7th/cmp-cmdline'
 Plug 'hrsh7th/nvim-cmp'
 Plug 'L3MON4D3/LuaSnip'
 Plug 'saadparwaiz1/cmp_luasnip'
+
 Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }
 Plug 'windwp/nvim-autopairs'
 Plug 'nvim-treesitter/nvim-treesitter'
-Plug 'editorconfig/editorconfig-vim'
 
 
 call plug#end()
@@ -61,8 +63,12 @@ set foldexpr=nvim_treesitter#foldexpr()
 set foldlevelstart=99
 set syntax=off
 
+" Nvim autopairs
+lua require('nvim-autopairs').setup()
+
 " EditorConfig
 let g:EditorConfig_exclude_patterns = ['fugitive://.*']
+au FileType cpp let b:EditorConfig_disable = 1
 
 " Colorizer
 lua require'colorizer'.setup()
@@ -297,6 +303,4 @@ nnoremap <leader>fd <cmd>Telescope lsp_definitions<cr>
 nnoremap <leader>rr <cmd>lua vim.lsp.buf.rename()<cr>
 nnoremap <silent> <leader>= <cmd>lua vim.lsp.buf.formatting()<cr>
 nnoremap <silent> <leader>i <cmd>lua vim.lsp.buf.hover()<cr>
-" Other
-autocmd! User nvim-autopairs lua require 'nvim-autopairs'.setup{}
-autocmd! User rust-tools lua require("rust-tools").setup({})
+
